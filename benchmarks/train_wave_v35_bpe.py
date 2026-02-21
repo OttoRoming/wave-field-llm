@@ -407,7 +407,6 @@ def main():
         dropout=0.1,
         use_checkpoint=True,
         interference_interval=3,
-        device=device,
     ).to(device)
 
     wave_result = train_model(

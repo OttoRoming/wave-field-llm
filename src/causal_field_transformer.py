@@ -62,15 +62,13 @@ class CausalFieldTransformerLayer(nn.Module):
                  num_heads=8,
                  ffn_dim=1024,
                  field_size=512,
-                 dropout=0.1,
-                 device='cuda'):
+                 dropout=0.1):
         super().__init__()
         
         self.attention = CausalFieldAttentionV2(
             embedding_dim=embedding_dim,
             num_heads=num_heads,
             field_size=field_size,
-            device=device
         )
         
         self.ffn = nn.Sequential(
@@ -119,8 +117,7 @@ class CausalFieldTransformer(nn.Module):
                  dropout=0.1,
                  use_checkpoint=False,
                  use_global_context=True,
-                 global_context_interval=2,
-                 device=None):
+                 global_context_interval=2):
         super().__init__()
         
         self.vocab_size = vocab_size
@@ -129,7 +126,6 @@ class CausalFieldTransformer(nn.Module):
         self.use_checkpoint = use_checkpoint
         self.use_global_context = use_global_context
         self.global_context_interval = global_context_interval
-        self.device = device if device is not None else ('cuda' if torch.cuda.is_available() else 'cpu')
         
         # Embeddings
         self.token_embedding = nn.Embedding(vocab_size, embedding_dim)
@@ -144,7 +140,6 @@ class CausalFieldTransformer(nn.Module):
                 ffn_dim=ffn_dim,
                 field_size=field_size,
                 dropout=dropout,
-                device=self.device
             )
             for _ in range(num_layers)
         ])
@@ -312,7 +307,6 @@ if __name__ == '__main__':
         num_layers=4,
         num_heads=8,
         field_size=512,
-        device=device
     ).to(device)
     
     param_count = sum(p.numel() for p in model.parameters())
