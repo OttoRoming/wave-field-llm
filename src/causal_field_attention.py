@@ -25,7 +25,7 @@ class CausalFieldAttention(nn.Module):
     Use causal convolution so token i only sees tokens 0..i.
     """
     
-    def __init__(self, embedding_dim, num_heads, field_size=512, sigma=3.0, device='cuda'):
+    def __init__(self, embedding_dim, num_heads, field_size=512, sigma=3.0):
         super().__init__()
         
         self.embedding_dim = embedding_dim
@@ -33,7 +33,6 @@ class CausalFieldAttention(nn.Module):
         self.head_dim = embedding_dim // num_heads
         self.field_size = field_size
         self.sigma = sigma
-        self.device = device
         
         assert embedding_dim % num_heads == 0, "embedding_dim must be divisible by num_heads"
         
@@ -195,7 +194,7 @@ class CausalFieldAttentionV2(nn.Module):
     Uses einsum and batch operations to minimize loops.
     """
     
-    def __init__(self, embedding_dim, num_heads, field_size=512, sigma=0.5, device='cuda'):
+    def __init__(self, embedding_dim, num_heads, field_size=512, sigma=0.5):
         super().__init__()
         
         self.embedding_dim = embedding_dim
@@ -203,7 +202,6 @@ class CausalFieldAttentionV2(nn.Module):
         self.head_dim = embedding_dim // num_heads
         self.field_size = field_size
         self.sigma = sigma
-        self.device = device
         
         assert embedding_dim % num_heads == 0
         
@@ -330,7 +328,6 @@ if __name__ == '__main__':
         embedding_dim=256,
         num_heads=8,
         field_size=512,
-        device=device
     ).to(device)
     
     # Test forward pass

@@ -33,7 +33,7 @@ import math
 
 class WaveFieldAttention(nn.Module):
     
-    def __init__(self, embedding_dim, num_heads, field_size=512, max_seq_len=128, device='cuda'):
+    def __init__(self, embedding_dim, num_heads, field_size=512, max_seq_len=128):
         super().__init__()
         
         self.embedding_dim = embedding_dim
@@ -41,7 +41,6 @@ class WaveFieldAttention(nn.Module):
         self.head_dim = embedding_dim // num_heads
         self.field_size = field_size
         self.max_seq_len = max_seq_len
-        self.device = device
         
         assert embedding_dim % num_heads == 0
         

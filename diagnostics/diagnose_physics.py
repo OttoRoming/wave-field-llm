@@ -72,7 +72,7 @@ def main():
         vocab_size=vocab_size, embedding_dim=256, num_layers=6,
         num_heads=8, ffn_dim=1024, field_size=field_size,
         max_seq_len=129, dropout=0.1, use_checkpoint=False,
-        interference_interval=3, device=device,
+        interference_interval=3,
     ).to(device)
 
     model.load_state_dict(torch.load(ckpt_path,

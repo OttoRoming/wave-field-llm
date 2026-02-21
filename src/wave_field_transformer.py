@@ -68,7 +68,7 @@ class WaveFieldTransformerLayer(nn.Module):
     """
     
     def __init__(self, embedding_dim=256, num_heads=8, ffn_dim=1024,
-                 field_size=512, max_seq_len=128, dropout=0.1, device='cuda'):
+                 field_size=512, max_seq_len=128, dropout=0.1):
         super().__init__()
         
         self.attention = WaveFieldAttention(
@@ -76,7 +76,6 @@ class WaveFieldTransformerLayer(nn.Module):
             num_heads=num_heads,
             field_size=field_size,
             max_seq_len=max_seq_len,
-            device=device
         )
         
         self.ffn = nn.Sequential(
@@ -204,8 +203,7 @@ class WaveFieldTransformer(nn.Module):
                  max_seq_len=2048,
                  dropout=0.1,
                  use_checkpoint=False,
-                 interference_interval=3,
-                 device=None):
+                 interference_interval=3):
         super().__init__()
         
         self.vocab_size = vocab_size
@@ -213,9 +211,6 @@ class WaveFieldTransformer(nn.Module):
         self.max_seq_len = max_seq_len
         self.use_checkpoint = use_checkpoint
         self.interference_interval = interference_interval
-        self.device = device if device is not None else (
-            'cuda' if torch.cuda.is_available() else 'cpu'
-        )
         
         # Embeddings
         self.token_embedding = nn.Embedding(vocab_size, embedding_dim)
@@ -233,7 +228,6 @@ class WaveFieldTransformer(nn.Module):
                 field_size=field_size,
                 max_seq_len=max_seq_len,
                 dropout=dropout,
-                device=self.device
             )
             for _ in range(num_layers)
         ])
@@ -335,7 +329,6 @@ if __name__ == '__main__':
         num_heads=8,
         ffn_dim=1024,
         field_size=512,
-        device=device
     ).to(device)
     
     param_count = sum(p.numel() for p in model.parameters())

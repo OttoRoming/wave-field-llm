@@ -76,7 +76,7 @@ def main():
         vocab_size=vocab_size, embedding_dim=256, num_layers=6,
         num_heads=8, ffn_dim=1024, field_size=field_size,
         max_seq_len=max_seq_len, dropout=0.1, use_checkpoint=False,
-        interference_interval=3, device=device,
+        interference_interval=3,
     ).to(device)
 
     ckpt = "bpe_wave_v35_checkpoints/best.pt"
