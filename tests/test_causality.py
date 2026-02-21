@@ -25,7 +25,7 @@ def test_causality():
         vocab_size=vocab_size, embedding_dim=64, num_layers=2,
         num_heads=4, ffn_dim=128, field_size=field_size,
         max_seq_len=33, dropout=0.0, use_checkpoint=False,
-        interference_interval=3, device=device,
+        interference_interval=3,
     ).to(device)
     model.eval()
 
