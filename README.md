@@ -1,6 +1,6 @@
 # Wave Field LLM — Language Modeling Through Physics
 
-**An alternative language model architecture that replaces O(n²) self-attention with wave equation dynamics on continuous fields. O(n log n) complexity, within 5% of standard transformer quality.**
+**An alternative language model architecture that replaces O(n²) self-attention with wave equation dynamics on continuous fields. O(n log n) complexity, within 5% of standard transformer quality. Written in Rust.**
 
 > What if language models could propagate information the way physics propagates waves — through fields, interference, and conservation laws?
 
@@ -26,17 +26,13 @@ WikiText-2, character tokenizer, 30 epochs, same hyperparameters. **Within 5% of
 
 ---
 
-## Rust Implementation & Performance Benchmarks
-
-The entire project has been rewritten in Rust (`wave_field_rs/`), providing a
-zero-dependency, high-performance inference implementation of the full
-Wave Field Transformer V3.5 architecture.
+## Performance Benchmarks
 
 ### Build & test
 
 ```bash
 cd wave_field_rs
-cargo test      # run all unit tests (shape, causality, determinism)
+cargo test      # run all unit tests (shape, causality, determinism, tokenizer)
 cargo bench     # run criterion benchmarks
 ```
 
@@ -71,20 +67,9 @@ consistent with O(n log n) as n grows large.
 Throughput (tokens/s) **increases** as sequence length grows, a hallmark of
 O(n log n) algorithms: the FFT amortises its overhead over more tokens.
 
-### What the Rust port provides
-
-| Feature | Python/PyTorch | Rust (`wave_field_rs`) |
-|---------|----------------|------------------------|
-| Backend | PyTorch (C++/CUDA) | `ndarray` + `rustfft` (pure Rust) |
-| Dependencies | torch, numpy, datasets… | 5 lightweight crates |
-| Inference mode | ✅ | ✅ |
-| Training / autograd | ✅ | ❌ (forward pass only) |
-| Tests | causality script | 3 unit tests (shape · causality · determinism) |
-| Benchmarks | manual timing | Criterion statistical benchmarks |
-
 ---
 
-
+## What Makes This Different
 
 This is **not** a modification of an existing architecture. It's a new approach where:
 
@@ -149,38 +134,41 @@ Next token logits
 
 ## Quick Start
 
-### Python (training)
-
 ```bash
 git clone https://github.com/badaramoni/wave-field-llm.git
-cd wave-field-llm
-pip install -r requirements.txt
-```
-
-### Rust (fast inference)
-
-```bash
-cd wave_field_rs
+cd wave-field-llm/wave_field_rs
 cargo test    # verify correctness
 cargo bench   # run performance benchmarks
 ```
 
-### Train on WikiText-2
+### Using the library
 
-```python
-from src import WaveFieldTransformer
+```rust
+use wave_field_rs::{WaveFieldTransformer, CharTokenizer};
+use rustfft::FftPlanner;
 
-model = WaveFieldTransformer(
-    vocab_size=8000,
-    embedding_dim=256,
-    num_layers=6,
-    num_heads=8,
-    ffn_dim=1024,
-    field_size=1024,
-    max_seq_len=256,
-)
+// Build a character tokenizer
+let mut tok = CharTokenizer::new();
+tok.build_vocab("hello world");
+let ids = tok.encode("hello");
 
-logits, loss = model(input_ids, labels=target_ids)
+// Forward pass
+let mut rng = rand::rngs::StdRng::seed_from_u64(42);
+let model = WaveFieldTransformer::new_random(
+    tok.vocab_size, // vocab_size
+    256,            // embedding_dim
+    6,              // num_layers
+    8,              // num_heads
+    1024,           // ffn_dim
+    1024,           // field_size
+    256,            // max_seq_len
+    3,              // interference_interval
+    &mut rng,
+);
+
+let mut planner = FftPlanner::new();
+let logits = model.forward(&ids, 1, ids.len(), &mut planner);
+// logits: flat Vec<f32> of shape (seq_len, vocab_size)
 ```
 
 ---
@@ -209,38 +197,19 @@ finishing back to London in January and February.
 
 ```
 wave-field-llm/
-├── src/                              # Python/PyTorch implementation
-│   ├── wave_field_attention.py       # Core V3.5: wave kernels, bilinear scatter/gather, coupling
-│   ├── wave_field_transformer.py     # Full model: layers, interference, embeddings
-│   ├── causal_field_attention.py     # V1/V2 field attention (historical)
-│   ├── causal_field_transformer.py   # V1/V2 transformer (historical)
-│   └── global_context.py            # O(n) global context via causal pooling
-├── wave_field_rs/                    # Rust implementation
+├── wave_field_rs/                    # Rust implementation (the entire project)
 │   ├── Cargo.toml
 │   ├── src/
 │   │   ├── lib.rs
 │   │   ├── attention.rs             # WaveFieldAttention (FFT convolution, scatter/gather)
-│   │   └── transformer.rs           # Full model + unit tests
+│   │   ├── transformer.rs           # Full model + unit tests
+│   │   └── tokenizer.rs             # CharTokenizer (used for WikiText-2 benchmarks)
 │   └── benches/
-│       └── wave_field_bench.rs      # Criterion benchmarks
-├── benchmarks/
-│   ├── benchmark_wikitext2.py        # WikiText-2 benchmark
-│   ├── train_wave_v35_bpe.py         # V3.5 + BPE training
-│   └── train_100m_bpe.py            # 100M parameter scaling experiment
-├── diagnostics/
-│   ├── diagnose_physics.py           # Physics-based model diagnostics
-│   └── diagnose_bpe.py              # BPE tokenizer diagnostics
-├── tokenizers/
-│   ├── field_tokenizer_v2.py         # Words-first tokenizer, zero UNK
-│   ├── field_tokenizer_v3.py         # V3 tokenizer with BPE support
-│   └── field_aware_tokenizer.py      # Co-occurrence based tokenizer
+│       └── wave_field_bench.rs      # Criterion benchmarks (seq-len 64–2048)
 ├── docs/
 │   ├── WAVE_FIELD_V3.md             # Full technical writeup
 │   ├── BENCHMARK_RESULTS.md          # All benchmark data
 │   └── ARCHITECTURE.md              # V1 architecture (historical)
-├── tests/
-│   └── test_causality.py            # Causality verification
-├── requirements.txt
 ├── LICENSE
 └── README.md
 ```
@@ -270,6 +239,7 @@ See [docs/WAVE_FIELD_V3.md](docs/WAVE_FIELD_V3.md) for the full technical story.
 - Within 5% of standard transformer on WikiText-2 (character tokenizer, 6M params)
 - Clean English generation with BPE tokenizer
 - Physics-based debugging that catches bugs no profiler can find
+- Pure Rust inference — no Python or ML framework dependency
 
 **Known gap:**
 - With BPE (8K vocab), there's a capacity bottleneck: Wave PPL 170.7 vs Standard PPL 91.4

@@ -12,6 +12,8 @@
 //! - Field Interference modules (causal pooling + phase-alignment gate)
 
 pub mod attention;
+pub mod tokenizer;
 pub mod transformer;
 
+pub use tokenizer::CharTokenizer;
 pub use transformer::WaveFieldTransformer;
