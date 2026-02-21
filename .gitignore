@@ -34,3 +34,6 @@ checkpoints/
 wandb/
 runs/
 outputs/
+
+# Rust build artifacts
+wave_field_rs/target/
