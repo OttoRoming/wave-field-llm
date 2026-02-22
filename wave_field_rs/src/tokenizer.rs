@@ -205,13 +205,13 @@ fn parse_json_char(s: &str) -> Option<(char, usize)> {
         let hex = inner.get(2..6)?;
         let code = u32::from_str_radix(hex, 16).ok()?;
         let ch = char::from_u32(code)?;
-        return Some((ch, 7)); // "\uXXXX" = 7 bytes: '"' + '\' + 'u' + 4 hex + '"'
+        return Some((ch, 7)); // "\uXXXX" = 7 bytes consumed: opening '"' + '\' + 'u' + 4 hex digits
     }
     // Plain character
     let ch = inner.chars().next()?;
     let byte_len = ch.len_utf8();
-    // 2 = opening '"' + closing '"', plus the UTF-8 bytes of the character itself
-    Some((ch, 2 + byte_len))
+    // 1 = opening '"', plus the UTF-8 bytes of the character itself (closing '"' not included)
+    Some((ch, 1 + byte_len))
 }
 
 // ─── tests ────────────────────────────────────────────────────────────────────
